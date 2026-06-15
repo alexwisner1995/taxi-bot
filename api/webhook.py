@@ -131,3 +131,42 @@ class handler(BaseHTTPRequestHandler):
         else:
             self.send_response(404)
             self.end_headers()
+            # Добавьте этот импорт в начало файла (если нет)
+import re
+
+# Добавьте эту функцию для обработки данных из Web App
+def handle_webapp_data(chat_id, data):
+    import httpx
+    try:
+        order = json.loads(data)
+        if order.get("action") == "order":
+            text = f"""🚕 **Новый заказ такси!**
+
+📍 **Откуда:** {order['from']}
+🎯 **Куда:** {order['to']}
+🚙 **Тариф:** {order['tariff']}
+💰 **Цена:** {order['price']} ₸
+
+⏳ Ищем ближайшего водителя..."""
+            
+            url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+            with httpx.Client() as client:
+                client.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"})
+            
+            # Здесь позже добавим рассылку водителям
+            return True
+    except Exception as e:
+        print(f"WebApp error: {e}")
+    return False
+
+# В функцию do_POST, после обработки текстовых сообщений, добавьте:
+# (Найдите строку с обработкой "message" и добавьте этот блок)
+
+# Обработка данных из Web App (мини-приложения)
+if "message" in update and "web_app_data" in update["message"]:
+    chat_id = update["message"]["chat"]["id"]
+    data = update["message"]["web_app_data"]["data"]
+    handle_webapp_data(chat_id, data)
+    self.send_response(200)
+    self.end_headers()
+    return
