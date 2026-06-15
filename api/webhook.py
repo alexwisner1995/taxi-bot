@@ -1,74 +1,47 @@
 import json
 import os
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler
-from telegram.constants import ParseMode
+from http.server import BaseHTTPRequestHandler
 
-TOKEN = os.environ.get("BOT_TOKEN")
-app = Application.builder().token(TOKEN).build()
+TOKEN = os.environ.get("BOT_TOKEN", "8764248989:AAHmshzqINNEzyMbiFmzOxOg9ZN3-oiV8LI")
 
-# Клавиатура выбора языка
-def lang_keyboard():
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton("🇰🇿 Қазақша", callback_data="lang_kz"),
-         InlineKeyboardButton("🇷🇺 Русский", callback_data="lang_ru")],
-        [InlineKeyboardButton("🇬🇧 English", callback_data="lang_en")]
-    ])
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/api/webhook":
+            self.send_response(405)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"statusCode": 405}).encode())
+        else:
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b"Taxi Bot is running!")
 
-# Клавиатура выбора роли
-def role_keyboard(lang):
-    texts = {"kz": "🚖 Жолаушы", "ru": "🚖 Пассажир", "en": "🚖 Passenger"}
-    return InlineKeyboardMarkup([
-        [InlineKeyboardButton(texts[lang], callback_data="role_passenger")],
-        [InlineKeyboardButton("🚙 Жүргізуші / Водитель / Driver", callback_data="role_driver")]
-    ])
+    def do_POST(self):
+        if self.path == "/api/webhook":
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            update = json.loads(body)
+            
+            chat_id = update.get("message", {}).get("chat", {}).get("id")
+            text = update.get("message", {}).get("text", "")
+            
+            if chat_id:
+                self.send_message(chat_id, "✅ Бот работает! Спасибо за ожидание. Скоро добавим функционал такси.")
+            
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True}).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
 
-async def start(update, context):
-    await update.message.reply_text(
-        "Қош келдіңіз! / Добро пожаловать! / Welcome!\n\nТіл таңдаңыз / Выберите язык",
-        reply_markup=lang_keyboard()
-    )
-
-async def button_handler(update, context):
-    query = update.callback_query
-    await query.answer()
-    data = query.data
-
-    if data.startswith("lang_"):
-        lang = data.split("_")[1]
-        context.user_data["lang"] = lang
-        await query.edit_message_text(
-            "Кімсіз? / Кто вы? / Who are you?",
-            reply_markup=role_keyboard(lang)
-        )
-    elif data == "role_passenger":
-        # Ссылка на мини-приложение (замените позже на ваш vercel URL)
-        webapp_url = "https://taxi-bot.vercel.app/static/index.html"
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🚕 Заказать такси", web_app=WebAppInfo(url=webapp_url))]
-        ])
-        await query.edit_message_text(
-            "Нажмите кнопку, чтобы заказать такси",
-            reply_markup=keyboard
-        )
-    elif data == "role_driver":
-        await query.edit_message_text(
-            "🚖 Режим водителя\n\nКогда будете готовы выезжать, нажмите:\n/online",
-            reply_markup=None
-        )
-
-async def online(update, context):
-    await update.message.reply_text("✅ Вы на линии! Скоро поступят заказы.")
-
-# Регистрируем команды
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("online", online))
-app.add_handler(CallbackQueryHandler(button_handler))
-
-async def webhook(request):
-    if request.method == "POST":
-        body = await request.body()
-        update = Update.de_json(json.loads(body), app.bot)
-        await app.process_update(update)
-        return {"statusCode": 200, "body": "OK"}
-    return {"statusCode": 405}
+    def send_message(self, chat_id, text):
+        import httpx
+        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+        try:
+            with httpx.Client() as client:
+                client.post(url, json={"chat_id": chat_id, "text": text})
+        except Exception as e:
+            print(f"Error sending message: {e}")
