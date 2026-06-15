@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taxi Бац - заказ</title>
+    <title>Taxi Бац</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -12,13 +12,13 @@
         .location-label { font-size: 13px; color: #8e8e93; margin-bottom: 6px; }
         .address { font-size: 17px; font-weight: 500; }
         input { width: 100%; padding: 14px; border: 1px solid #e5e5ea; border-radius: 12px; font-size: 16px; background: #f8f8f8; box-sizing: border-box; }
-        .tariffs { display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 12px; }
-        .tariff { flex: 1; min-width: 100px; background: #f8f8f8; border-radius: 14px; padding: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; }
+        .tariffs { display: flex; gap: 12px; margin: 12px 0; }
+        .tariff { flex: 1; background: #f8f8f8; border-radius: 14px; padding: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; }
         .tariff.selected { background: #fff7e6; border-color: #ffcc00; }
         .tariff-name { font-weight: 600; font-size: 16px; }
         .tariff-price { font-size: 13px; color: #ff3b30; font-weight: 600; }
         .order-btn { background: #ffcc00; width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 8px; }
-        .info-text { font-size: 12px; color: #8e8e93; text-align: center; margin-top: 16px; }
+        .order-btn:active { opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -28,34 +28,56 @@
     </div>
     <div class="card">
         <div class="location-label">🎯 Куда</div>
-        <input type="text" id="destination" placeholder="Введите адрес назначения">
+        <input type="text" id="destination" placeholder="Введите адрес">
     </div>
-    <div class="card">
-        <div class="location-label">🚕 Тариф</div>
-        <div class="tariffs">
-            <div class="tariff selected" data-tariff="econom" data-price="400"><div class="tariff-name">🚙 Эконом</div><div class="tariff-price">от 400 ₸</div></div>
-            <div class="tariff" data-tariff="comfort" data-price="600"><div class="tariff-name">🚘 Комфорт</div><div class="tariff-price">от 600 ₸</div></div>
-            <div class="tariff" data-tariff="comfort_plus" data-price="800"><div class="tariff-name">✨ Комфорт+</div><div class="tariff-price">от 800 ₸</div></div>
+    <div class="tariffs">
+        <div class="tariff selected" data-tariff="econom" data-price="400">
+            <div class="tariff-name">🚙 Эконом</div>
+            <div class="tariff-price">400 ₸</div>
+        </div>
+        <div class="tariff" data-tariff="comfort" data-price="600">
+            <div class="tariff-name">🚘 Комфорт</div>
+            <div class="tariff-price">600 ₸</div>
+        </div>
+        <div class="tariff" data-tariff="comfort_plus" data-price="800">
+            <div class="tariff-name">✨ Комфорт+</div>
+            <div class="tariff-price">800 ₸</div>
         </div>
     </div>
     <button class="order-btn" onclick="orderTaxi()">🚕 ЗАКАЗАТЬ</button>
-    <div class="info-text">⚠️ Щербактинский район, Павлодарская обл.</div>
+
     <script>
-        let selectedTariff = "econom", selectedPrice = 400;
+        let selectedTariff = "econom";
+        let selectedPrice = 400;
+
         document.querySelectorAll(".tariff").forEach(t => {
             t.onclick = () => {
                 document.querySelectorAll(".tariff").forEach(x => x.classList.remove("selected"));
                 t.classList.add("selected");
-                selectedTariff = t.dataset.tariff;
-                selectedPrice = parseInt(t.dataset.price);
+                selectedTariff = t.getAttribute("data-tariff");
+                selectedPrice = parseInt(t.getAttribute("data-price"));
             };
         });
+
         function orderTaxi() {
-            let to = document.getElementById("destination").value;
-            if (!to) { alert("Введите адрес!"); return; }
-            Telegram.WebApp.sendData(JSON.stringify({ action: "order", from: "Победа көшесі, 27/1", to: to, tariff: selectedTariff, price: selectedPrice }));
+            let destination = document.getElementById("destination").value;
+            if (!destination) {
+                alert("Введите адрес назначения!");
+                return;
+            }
+
+            let orderData = {
+                action: "order",
+                from: "Победа көшесі, 27/1",
+                to: destination,
+                tariff: selectedTariff,
+                price: selectedPrice
+            };
+
+            Telegram.WebApp.sendData(JSON.stringify(orderData));
             Telegram.WebApp.close();
         }
+
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
     </script>
