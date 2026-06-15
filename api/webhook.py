@@ -11,7 +11,7 @@ def send_message(chat_id, text):
         with httpx.Client() as client:
             client.post(url, json={"chat_id": chat_id, "text": text})
     except Exception as e:
-        print(e)
+        print(f"Error: {e}")
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -21,20 +21,16 @@ class handler(BaseHTTPRequestHandler):
         self.wfile.write(b"Taxi Bot is running!")
 
     def do_POST(self):
-        length = int(self.headers.get('Content-Length', 0))
-        body = self.rfile.read(length)
+        content_length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_length)
         update = json.loads(body)
-
-        if "message" in update and "web_app_data" in update["message"]:
+        
+        print(f"Update: {update}")  # Для логов Vercel
+        
+        if "message" in update:
             chat_id = update["message"]["chat"]["id"]
-            data = update["message"]["web_app_data"]["data"]
-            try:
-                order = json.loads(data)
-                text = f"🚕 Заказ: {order['to']}, {order['tariff']}, {order['price']} ₸"
-                send_message(chat_id, text)
-            except:
-                send_message(chat_id, "Заказ получен!")
-
+            send_message(chat_id, "✅ Бот работает! Ваше сообщение получено.")
+        
         self.send_response(200)
         self.end_headers()
         self.wfile.write(json.dumps({"ok": True}).encode())
