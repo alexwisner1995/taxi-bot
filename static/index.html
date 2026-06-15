@@ -6,105 +6,151 @@
     <title>Taxi Бац - заказ</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f5f5;
             padding: 16px;
-            background: #f8f9fa;
         }
         .card {
             background: white;
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .location {
-            font-size: 14px;
-            color: #6c757d;
-            margin-bottom: 4px;
+        .location-label {
+            font-size: 13px;
+            color: #8e8e93;
+            margin-bottom: 6px;
         }
         .address {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 500;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+        }
+        .address-note {
+            font-size: 13px;
+            color: #8e8e93;
+        }
+        .divider {
+            height: 1px;
+            background: #e5e5ea;
+            margin: 12px 0;
         }
         input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #dee2e6;
+            padding: 14px;
+            border: 1px solid #e5e5ea;
             border-radius: 12px;
             font-size: 16px;
+            background: #f8f8f8;
             box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #ffcc00;
+            background: white;
         }
         .tariffs {
             display: flex;
             gap: 12px;
-            margin: 16px 0;
+            overflow-x: auto;
+            padding: 4px 0 12px;
         }
         .tariff {
             flex: 1;
-            background: #f1f3f5;
-            border-radius: 12px;
+            min-width: 100px;
+            background: #f8f8f8;
+            border-radius: 14px;
             padding: 12px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
+            border: 2px solid transparent;
         }
         .tariff.selected {
-            background: #ffde6e;
-            border: 2px solid #f5a623;
+            background: #fff7e6;
+            border-color: #ffcc00;
         }
         .tariff-name {
-            font-weight: bold;
+            font-weight: 600;
             font-size: 16px;
+            margin-bottom: 6px;
         }
         .tariff-price {
-            font-size: 14px;
-            color: #495057;
-            margin-top: 4px;
+            font-size: 13px;
+            color: #ff3b30;
+            font-weight: 600;
+        }
+        .tariff-desc {
+            font-size: 11px;
+            color: #8e8e93;
+            margin-top: 6px;
         }
         .order-btn {
             background: #ffcc00;
             width: 100%;
             padding: 16px;
             border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
             color: #1a1a1a;
             cursor: pointer;
+            margin-top: 8px;
+            transition: opacity 0.2s;
+        }
+        .order-btn:active {
+            opacity: 0.8;
+        }
+        .info-text {
+            font-size: 12px;
+            color: #8e8e93;
+            text-align: center;
             margin-top: 16px;
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <div class="location">📍 Откуда</div>
+        <div class="location-label">📍 Откуда</div>
         <div class="address">Победа көшесі, 27/1</div>
+        <div class="address-note">Кіреберіс • Подъезд 1</div>
     </div>
 
     <div class="card">
-        <div class="location">🎯 Куда едем?</div>
-        <input type="text" id="destination" placeholder="Введите адрес или выберите на карте">
+        <div class="location-label">🎯 Куда</div>
+        <input type="text" id="destination" placeholder="Введите адрес назначения">
     </div>
 
-    <div class="tariffs">
-        <div class="tariff selected" data-tariff="econom" data-price="400">
-            <div class="tariff-name">🚙 Эконом</div>
-            <div class="tariff-price">от 400 ₸</div>
-        </div>
-        <div class="tariff" data-tariff="comfort" data-price="600">
-            <div class="tariff-name">🚘 Комфорт</div>
-            <div class="tariff-price">от 600 ₸</div>
-        </div>
-        <div class="tariff" data-tariff="comfort_plus" data-price="800">
-            <div class="tariff-name">✨ Комфорт+</div>
-            <div class="tariff-price">от 800 ₸</div>
+    <div class="card">
+        <div class="location-label" style="margin-bottom: 12px;">🚕 Тариф</div>
+        <div class="tariffs">
+            <div class="tariff selected" data-tariff="econom" data-price="400">
+                <div class="tariff-name">🚙 Эконом</div>
+                <div class="tariff-price">от 400 ₸</div>
+                <div class="tariff-desc">Жылдам әрі арзан</div>
+            </div>
+            <div class="tariff" data-tariff="comfort" data-price="600">
+                <div class="tariff-name">🚘 Комфорт</div>
+                <div class="tariff-price">от 600 ₸</div>
+                <div class="tariff-desc">Тәжірибелі жүргізуші</div>
+            </div>
+            <div class="tariff" data-tariff="comfort_plus" data-price="800">
+                <div class="tariff-name">✨ Комфорт+</div>
+                <div class="tariff-price">от 800 ₸</div>
+                <div class="tariff-desc">Ұзақ сапарда босаңсу</div>
+            </div>
         </div>
     </div>
 
     <button class="order-btn" onclick="orderTaxi()">🚕 ЗАКАЗАТЬ</button>
+    <div class="info-text">⚠️ Водители в районе: Щербактинский район, Павлодарская обл.</div>
 
     <script>
         let selectedTariff = "econom";
@@ -122,7 +168,7 @@
         function orderTaxi() {
             const destination = document.getElementById("destination").value;
             if (!destination) {
-                alert("Введите адрес назначения");
+                alert("Введите адрес назначения!");
                 return;
             }
 
@@ -139,6 +185,7 @@
         }
 
         Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
     </script>
 </body>
 </html>
