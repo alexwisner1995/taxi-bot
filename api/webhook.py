@@ -30,35 +30,14 @@ class handler(BaseHTTPRequestHandler):
             body = self.rfile.read(content_length)
             update = json.loads(body)
             
-            # Обработка сообщений
+            print(f"Received update: {update}")  # Для отладки в логах Vercel
+            
             if "message" in update:
                 msg = update["message"]
                 chat_id = msg["chat"]["id"]
                 
-                # Обработка данных из мини-приложения (КНОПКА ЗАКАЗАТЬ)
-                if "web_app_data" in msg:
-                    data = msg["web_app_data"]["data"]
-                    try:
-                        order = json.loads(data)
-                        text = f"""🚕 НОВЫЙ ЗАКАЗ ТАКСИ!
-
-📍 Откуда: {order['from']}
-🎯 Куда: {order['to']}
-🚙 Тариф: {order['tariff']}
-💰 Цена: {order['price']} ₸
-
-⏳ Ищем ближайшего водителя..."""
-                        send_message(chat_id, text)
-                    except:
-                        send_message(chat_id, "✅ Заказ получен! Скоро найдём водителя.")
-                    
-                    self.send_response(200)
-                    self.end_headers()
-                    return
-                
-                # Команда /start
-                if "text" in msg and msg["text"] == "/start":
-                    send_message(chat_id, "✅ Бот работает! Напишите /menu для продолжения")
+                # Любое сообщение — отвечаем
+                send_message(chat_id, "✅ Бот работает! Ваше сообщение получено.")
             
             self.send_response(200)
             self.end_headers()
